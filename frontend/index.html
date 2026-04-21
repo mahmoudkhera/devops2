@@ -1,0 +1,560 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>StockWatch</title>
+<style>
+  :root {
+    --bg: #0f1012;
+    --card: #18191c;
+    --card-hover: #1e1f23;
+    --border: #2a2b2f;
+    --text: #e8e8ea;
+    --text-dim: #8b8c90;
+    --text-label: #6b6c70;
+    --yellow: #d4f542;
+    --green: #3ee589;
+    --orange: #f59f4a;
+    --red: #ef4444;
+    --mono: 'SF Mono', 'Monaco', 'Consolas', monospace;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+    min-height: 100vh;
+    padding: 32px;
+  }
+  .container { max-width: 1200px; margin: 0 auto; }
+
+  /* Header */
+  header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-bottom: 20px;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 28px;
+  }
+  .brand { display: flex; align-items: center; gap: 14px; }
+  .logo {
+    width: 44px; height: 44px;
+    background: var(--yellow);
+    border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 22px;
+  }
+  .brand h1 { font-size: 24px; font-weight: 700; letter-spacing: -0.3px; }
+  .status {
+    display: flex; align-items: center; gap: 10px;
+    font-family: var(--mono); font-size: 12px; color: var(--text-dim);
+    letter-spacing: 0.5px;
+  }
+  .status-dot {
+    width: 10px; height: 10px; background: var(--green);
+    border-radius: 50%;
+    box-shadow: 0 0 8px var(--green);
+    animation: pulse 2s ease-in-out infinite;
+  }
+  @keyframes pulse {
+    0%, 100% { opacity: 1; } 50% { opacity: 0.5; }
+  }
+
+  /* Stats cards */
+  .stats {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+    margin-bottom: 24px;
+  }
+  .stat {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 20px;
+    position: relative;
+    overflow: hidden;
+  }
+  .stat::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 16px; right: 16px;
+    height: 2px;
+    border-radius: 0 0 2px 2px;
+  }
+  .stat.total::before { background: var(--yellow); }
+  .stat.instock::before { background: var(--green); }
+  .stat.low::before { background: var(--orange); }
+  .stat.critical::before { background: var(--red); }
+  .stat-label {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--text-label);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 10px;
+  }
+  .stat-value { font-size: 36px; font-weight: 700; font-family: var(--mono); }
+  .stat.total .stat-value { color: var(--yellow); }
+  .stat.instock .stat-value { color: var(--green); }
+  .stat.low .stat-value { color: var(--orange); }
+  .stat.critical .stat-value { color: var(--red); }
+
+  /* Main grid */
+  .grid {
+    display: grid;
+    grid-template-columns: 1.3fr 1fr;
+    gap: 20px;
+  }
+  .card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 22px;
+    margin-bottom: 20px;
+  }
+  .card-header {
+    display: flex; justify-content: space-between; align-items: center;
+    margin-bottom: 18px;
+  }
+  .card h2 { font-size: 17px; font-weight: 600; }
+
+  /* Table */
+  table { width: 100%; border-collapse: collapse; }
+  th {
+    font-family: var(--mono); font-size: 10px;
+    color: var(--text-label); text-transform: uppercase;
+    letter-spacing: 1px; text-align: left;
+    padding: 10px 0; border-bottom: 1px solid var(--border);
+    font-weight: 500;
+  }
+  td {
+    padding: 14px 0; border-bottom: 1px solid var(--border);
+    font-size: 14px; vertical-align: middle;
+  }
+  td:first-child { font-weight: 600; padding-right: 12px; }
+  tr:last-child td { border-bottom: none; }
+
+  /* Progress bar */
+  .progress-cell { min-width: 130px; padding-right: 12px; }
+  .progress-wrap {
+    display: flex; align-items: center; gap: 10px;
+  }
+  .progress-val {
+    font-family: var(--mono);
+    font-size: 14px;
+    font-weight: 600;
+    min-width: 28px;
+  }
+  .progress-bar {
+    flex: 1;
+    height: 6px;
+    background: #2a2b2f;
+    border-radius: 3px;
+    overflow: hidden;
+  }
+  .progress-fill {
+    height: 100%;
+    border-radius: 3px;
+    transition: width 0.3s;
+  }
+  .status-healthy .progress-val { color: var(--green); }
+  .status-healthy .progress-fill { background: var(--green); }
+  .status-low .progress-val { color: var(--orange); }
+  .status-low .progress-fill { background: var(--orange); }
+  .status-critical .progress-val { color: var(--red); }
+  .status-critical .progress-fill { background: var(--red); }
+
+  .threshold-cell {
+    font-family: var(--mono);
+    color: var(--text-dim);
+    font-size: 14px;
+  }
+  .action-cell { text-align: right; }
+
+  /* Buttons */
+  button {
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--text);
+    padding: 10px 18px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 500;
+    font-family: inherit;
+    transition: all 0.15s;
+  }
+  button:hover { background: var(--card-hover); border-color: #3a3b3f; }
+  button.primary {
+    background: var(--yellow);
+    color: #0f1012;
+    border-color: var(--yellow);
+    font-weight: 600;
+  }
+  button.primary:hover { background: #c2e533; }
+  button.icon {
+    padding: 8px 10px; font-size: 12px;
+    color: var(--text-dim);
+  }
+  button.icon:hover { color: var(--red); border-color: var(--red); }
+  button.small { padding: 6px 12px; font-size: 12px; }
+
+  /* Forms */
+  .form-group { margin-bottom: 14px; }
+  .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  label {
+    display: block;
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--text-label);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 6px;
+  }
+  input {
+    width: 100%;
+    background: #0f1012;
+    border: 1px solid var(--border);
+    color: var(--text);
+    padding: 11px 14px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-family: inherit;
+    transition: border-color 0.15s;
+  }
+  input:focus {
+    outline: none; border-color: var(--yellow);
+  }
+  .qty-input {
+    width: 70px;
+    padding: 6px 10px;
+    font-family: var(--mono);
+    font-size: 13px;
+  }
+
+  /* Badges */
+  .badge {
+    font-family: var(--mono);
+    font-size: 11px;
+    padding: 3px 10px;
+    border-radius: 5px;
+    background: rgba(62, 229, 137, 0.15);
+    color: var(--green);
+    border: 1px solid rgba(62, 229, 137, 0.3);
+  }
+
+  /* Alert log */
+  .alert-list {
+    max-height: 220px;
+    overflow-y: auto;
+    font-family: var(--mono);
+    font-size: 12px;
+  }
+  .alert-item {
+    padding: 10px 12px;
+    border-left: 2px solid var(--orange);
+    background: rgba(245, 159, 74, 0.06);
+    border-radius: 0 6px 6px 0;
+    margin-bottom: 6px;
+  }
+  .alert-time { color: var(--text-label); font-size: 11px; }
+  .alert-empty {
+    text-align: center;
+    color: var(--text-label);
+    font-family: var(--mono);
+    font-size: 12px;
+    padding: 24px;
+    line-height: 1.8;
+  }
+
+  /* Utility */
+  .full-width { grid-column: 1 / -1; }
+  @media (max-width: 900px) {
+    .grid { grid-template-columns: 1fr; }
+    .stats { grid-template-columns: repeat(2, 1fr); }
+  }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <header>
+    <div class="brand">
+      <div class="logo">📦</div>
+      <h1>StockWatch</h1>
+    </div>
+    <div class="status">
+      <div class="status-dot"></div>
+      <span id="service-status">CHECKING SERVICES...</span>
+    </div>
+  </header>
+
+  <!-- Stats -->
+  <div class="stats">
+    <div class="stat total">
+      <div class="stat-label">Total Products</div>
+      <div class="stat-value" id="stat-total">0</div>
+    </div>
+    <div class="stat instock">
+      <div class="stat-label">In Stock</div>
+      <div class="stat-value" id="stat-instock">0</div>
+    </div>
+    <div class="stat low">
+      <div class="stat-label">Low Stock</div>
+      <div class="stat-value" id="stat-low">0</div>
+    </div>
+    <div class="stat critical">
+      <div class="stat-label">Critical</div>
+      <div class="stat-value" id="stat-critical">0</div>
+    </div>
+  </div>
+
+  <!-- Main -->
+  <div class="grid">
+    <!-- LEFT: Inventory table -->
+    <div>
+      <div class="card">
+        <div class="card-header">
+          <h2>Product Inventory</h2>
+          <button onclick="runStockCheck()">⏰ Run stock check now</button>
+        </div>
+        <table>
+          <thead>
+            <tr>
+              <th>Product</th>
+              <th>Qty</th>
+              <th>Threshold</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody id="products-list"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- RIGHT: Side panel -->
+    <div>
+      <!-- Add product -->
+      <div class="card">
+        <h2 style="margin-bottom:16px">Add Product</h2>
+        <div class="form-group">
+          <label>Product Name</label>
+          <input id="new-name" placeholder="e.g. USB Cable">
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Quantity</label>
+            <input id="new-qty" type="number" value="50">
+          </div>
+          <div class="form-group">
+            <label>Threshold</label>
+            <input id="new-threshold" type="number" value="5">
+          </div>
+        </div>
+        <button class="primary" style="width:100%" onclick="addProduct()">+ Add Product</button>
+      </div>
+
+      <!-- Email config -->
+      <div class="card">
+        <div class="card-header">
+          <h2>Email Alerts</h2>
+          <span class="badge">✓ configured</span>
+        </div>
+        <div class="form-group">
+          <label>Alert Recipient</label>
+          <input id="alert-email" type="email">
+        </div>
+        <button style="width:100%" onclick="saveEmail()">Save email</button>
+      </div>
+
+      <!-- Alert log -->
+      <div class="card">
+        <div class="card-header">
+          <h2>Alert Log</h2>
+          <button class="small" onclick="clearAlerts()">Clear</button>
+        </div>
+        <div id="alert-log" class="alert-list"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="/config.js"></script>
+<script>
+const API = window.APP_CONFIG.API_URL;
+
+function classifyStock(qty, threshold) {
+  if (qty === 0 || qty <= threshold * 0.3) return 'critical';
+  if (qty <= threshold) return 'low';
+  return 'healthy';
+}
+
+async function loadProducts() {
+  try {
+    const res = await fetch(API + '/products');
+    const products = await res.json();
+
+    // Update stats
+    let total = products.length, inStock = 0, low = 0, critical = 0;
+    products.forEach(p => {
+      const s = classifyStock(p.quantity, p.threshold);
+      if (s === 'healthy') inStock++;
+      else if (s === 'low') low++;
+      else critical++;
+    });
+    document.getElementById('stat-total').textContent = total;
+    document.getElementById('stat-instock').textContent = inStock;
+    document.getElementById('stat-low').textContent = low;
+    document.getElementById('stat-critical').textContent = critical;
+
+    // Render table
+    const tbody = document.getElementById('products-list');
+    if (products.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;color:var(--text-dim);padding:30px">No products yet. Add one →</td></tr>';
+      return;
+    }
+    tbody.innerHTML = products.map(p => {
+      const status = classifyStock(p.quantity, p.threshold);
+      const pct = Math.min(100, Math.max(5, (p.quantity / Math.max(p.threshold * 2, 10)) * 100));
+      return `
+        <tr class="status-${status}">
+          <td>${escapeHtml(p.name)}</td>
+          <td class="progress-cell">
+            <div class="progress-wrap">
+              <span class="progress-val">${p.quantity}</span>
+              <div class="progress-bar">
+                <div class="progress-fill" style="width:${pct}%"></div>
+              </div>
+            </div>
+          </td>
+          <td class="threshold-cell">${p.threshold}</td>
+          <td class="action-cell">
+            <input class="qty-input" type="number" value="${p.quantity}" id="qty-${p.id}">
+            <button class="small" onclick="updateQty(${p.id})">Set</button>
+            <button class="icon" onclick="deleteProduct(${p.id})" title="Delete">✕</button>
+          </td>
+        </tr>
+      `;
+    }).join('');
+  } catch (err) {
+    document.getElementById('service-status').textContent = 'INVENTORY SERVICE OFFLINE';
+    document.querySelector('.status-dot').style.background = 'var(--red)';
+    document.querySelector('.status-dot').style.boxShadow = '0 0 8px var(--red)';
+  }
+}
+
+async function addProduct() {
+  const name = document.getElementById('new-name').value.trim();
+  const quantity = +document.getElementById('new-qty').value;
+  const threshold = +document.getElementById('new-threshold').value;
+  if (!name) return alert('Product name required');
+
+  await fetch(API + '/products', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ name, quantity, threshold })
+  });
+  document.getElementById('new-name').value = '';
+  document.getElementById('new-qty').value = 50;
+  document.getElementById('new-threshold').value = 5;
+  loadProducts();
+  loadAlerts();
+}
+
+async function updateQty(id) {
+  const quantity = +document.getElementById('qty-' + id).value;
+  await fetch(API + '/products/' + id, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ quantity })
+  });
+  loadProducts();
+  setTimeout(loadAlerts, 300);
+}
+
+async function deleteProduct(id) {
+  if (!confirm('Delete this product?')) return;
+  await fetch(API + '/products/' + id, { method: 'DELETE' });
+  loadProducts();
+}
+
+async function runStockCheck() {
+  const res = await fetch(API + '/stock-check', { method: 'POST' });
+  const data = await res.json();
+  loadAlerts();
+  alert(`Checked ${data.checked} products. ${data.alerted} alerts sent.`);
+}
+
+async function loadAlerts() {
+  try {
+    const res = await fetch(API + '/alerts');
+    const alerts = await res.json();
+    const log = document.getElementById('alert-log');
+    if (alerts.length === 0) {
+      log.innerHTML = '<div class="alert-empty">No alerts yet.<br>Run a stock check to trigger.</div>';
+      return;
+    }
+    log.innerHTML = alerts.map(a => `
+      <div class="alert-item">
+        <div><strong>${escapeHtml(a.product_name)}</strong> → ${a.quantity} / ${a.threshold}</div>
+        <div class="alert-time">${new Date(a.created_at).toLocaleString()}</div>
+      </div>
+    `).join('');
+  } catch (err) { /* service offline */ }
+}
+
+async function clearAlerts() {
+  if (!confirm('Clear all alerts?')) return;
+  await fetch(API + '/alerts', { method: 'DELETE' });
+  loadAlerts();
+}
+
+async function loadEmail() {
+  try {
+    const res = await fetch(API + '/config/email');
+    const data = await res.json();
+    document.getElementById('alert-email').value = data.email;
+  } catch (err) { /* offline */ }
+}
+
+async function saveEmail() {
+  const email = document.getElementById('alert-email').value.trim();
+  if (!email) return alert('Email required');
+  await fetch(API + '/config/email', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ email })
+  });
+  alert('Email saved');
+}
+
+async function checkServices() {
+  try {
+    await fetch(API + '/products');
+    document.getElementById('service-status').textContent = 'SERVICES ONLINE · CRON ACTIVE';
+  } catch {
+    document.getElementById('service-status').textContent = 'INVENTORY SERVICE OFFLINE';
+    document.querySelector('.status-dot').style.background = 'var(--red)';
+  }
+}
+
+function escapeHtml(s) {
+  return String(s).replace(/[&<>"']/g, c => ({
+    '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'
+  }[c]));
+}
+
+// Init
+checkServices();
+loadProducts();
+loadAlerts();
+loadEmail();
+
+// Auto-refresh every 10s
+setInterval(() => { loadProducts(); loadAlerts(); }, 10000);
+</script>
+</body>
+</html>

@@ -1,0 +1,39 @@
+version: '3.8'
+
+services:
+  inventory:
+    build: ./inventory-service
+    container_name: inventory
+    ports:
+      - "${INVENTORY_PORT}:3000"
+    environment:
+      - PORT=3000
+      - HOST=${INVENTORY_HOST}
+      - DATABASE_URL=${DATABASE_URL}
+      - CORS_ORIGIN=${CORS_ORIGIN}
+      - NOTIFICATION_URL=http://notification:3002/notify
+      - ALERT_RECIPIENT=${ALERT_RECIPIENT}
+    networks:
+      - stockwatch-net
+    restart: unless-stopped
+
+
+
+  frontend:
+    build: ./frontend
+    container_name: frontend
+    ports:
+      - "${FRONTEND_PORT}:${FRONTEND_PORT}"
+    environment:
+      - PORT=${FRONTEND_PORT}
+      - FRONTEND_HOST=0.0.0.0
+      - API=${API}
+    depends_on:
+      - inventory
+    networks:
+      - stockwatch-net
+    restart: unless-stopped
+
+networks:
+  stockwatch-net:
+    driver: bridge
