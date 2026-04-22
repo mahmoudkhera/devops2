@@ -173,6 +173,7 @@ app.get('/health', (req, res) => res.json({ status: 'ok', service: 'inventory' }
 initDb().then(() => {
   app.listen(PORT, HOST, () => {
     console.log(`Inventory service on http://${HOST}:${PORT}`);
+    
   });
 }).catch(err => {
   console.error('Failed to initialize DB:', err);
