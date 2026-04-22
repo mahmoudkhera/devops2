@@ -53,7 +53,7 @@ jobs:
       - name: Build and Push Image
         uses: docker/build-push-action@v5
         with:
-          context: ./devops2-notifications
+          context: ./inventory-service
           push: true
           tags: ${{ secrets.DOCKER_USERNAME }}/devops2-backend:${{ inputs.version }}
           cache-from: type=registry,ref=${{ secrets.DOCKER_USERNAME }}/devops2-backend:buildcache
@@ -77,7 +77,7 @@ jobs:
       - name: Build and Push Image
         uses: docker/build-push-action@v5
         with:
-          context: ./devops2-notifications
+          context: ./notification-service
           push: true
           tags: ${{ secrets.DOCKER_USERNAME }}/devops2-notifications:${{ inputs.version }}
           cache-from: type=registry,ref=${{ secrets.DOCKER_USERNAME }}/devops2-notifications:buildcache
