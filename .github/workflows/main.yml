@@ -9,7 +9,8 @@ on:
         default: "latest"
 
 jobs:
-  build:
+
+  build-frontend:
     runs-on: ubuntu-latest
 
     steps:
@@ -24,8 +25,16 @@ jobs:
 
       - name: Build frontend service
         run: |
-          docker build -t ${{ secrets.DOCKER_USERNAME }}/devops2:${{ github.event.inputs.version }} ./frontend
+          docker build -t ${{ secrets.DOCKER_USERNAME }}/devops2-frontend:${{ github.event.inputs.version }} ./frontend
 
-      - name: Push image
-        run: |
-          docker push ${{ secrets.DOCKER_USERNAME }}/devops2:${{ github.event.inputs.version }}
+      - name: Build and Push Image
+        uses: docker/build-push-action@v5
+        with:
+          context:  ./frontend
+          push: true
+          tags: ${{ inputs.version }}
+          cache-from: type=registry,ref=${{ env.REGISTRY }}/:buildcache
+          cache-to: type=registry,ref=${{ env.REGISTRY }}/devops2-frontend:buildcache,mode=max
+            
+
+
