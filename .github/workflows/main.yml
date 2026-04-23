@@ -95,6 +95,7 @@ jobs:
         SMTP_HOST: ${{ vars.SMTP_HOST }}
         SMTP_PORT: ${{ vars.SMTP_PORT }}
         SMTP_FROM: ${{ vars.SMTP_FROM }}
+        ALERT_RECIPIENT: ${{ vars.ALERT_RECIPIENT }}
   
       steps:
         - name: Checkout
@@ -117,20 +118,22 @@ jobs:
   
         - name: Wait for services to be ready
           run: |
-            for i in {1..30}; do
-              echo "Attempt $i"
-            
-              curl -s http://localhost:3000/health || echo "frontend not ready"
-              curl -s http://localhost:3002/health || echo "backend not ready"
-              curl -s http://localhost:8000/ || echo "notification not ready"
-            
-              if curl -sf http://localhost:3000/health > /dev/null \
-                && curl -sf http://localhost:3002/health > /dev/null \
-                && curl -sf http://localhost:8000/ > /dev/null; then
-                echo "All services responding"
-                exit 0
+           echo "Waiting for services..."
+           for i in {1..60}; do
+              FRONTEND=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:3000/health || true)
+              BACKEND=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:3002/health || true)
+              API=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:8000/ || true)
+        
+              echo "Attempt $i:"
+              echo "  frontend: $FRONTEND"
+              echo "  backend:  $BACKEND"
+              echo "  api:      $API"
+        
+              if [ "$FRONTEND" = "200" ] && [ "$BACKEND" = "200" ] && [ "$API" = "200" ]; then
+                echo " All services responding"
+                break
               fi
-            
+        
               sleep 2
             done
   
