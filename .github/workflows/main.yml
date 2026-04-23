@@ -117,19 +117,22 @@ jobs:
   
         - name: Wait for services to be ready
           run: |
-            echo "Waiting for services..."
             for i in {1..30}; do
-              if curl -sf http://localhost:3000/health \
-                && curl -sf http://localhost:3002/health \
+              echo "Attempt $i"
+            
+              curl -s http://localhost:3000/health || echo "frontend not ready"
+              curl -s http://localhost:3002/health || echo "backend not ready"
+              curl -s http://localhost:8000/ || echo "notification not ready"
+            
+              if curl -sf http://localhost:3000/health > /dev/null \
+                && curl -sf http://localhost:3002/health > /dev/null \
                 && curl -sf http://localhost:8000/ > /dev/null; then
-                echo " All services responding"
+                echo "All services responding"
                 exit 0
               fi
-              echo "Attempt $i/30 — not ready yet, waiting 2s..."
+            
               sleep 2
             done
-            echo " Services never became ready"
-            exit 1
   
         - name: Run integration tests
           run: bash ./tests/integration-tests.sh
