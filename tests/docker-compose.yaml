@@ -14,9 +14,7 @@ services:
       - ALERT_RECIPIENT=test@example.com
     ports:
       - "3000:3000"
-    depends_on:
-      postgres:
-        condition: service_healthy
+
     networks:
       - ci-net
 
