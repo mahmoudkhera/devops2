@@ -24,8 +24,8 @@ services:
     image: ${DOCKER_USERNAME}/devops2-notifications:${VERSION}
     container_name: ci-notification
     environment:
-      - HOST=${NOTIFICATION_HOST}
-      - PORT=${NOTIFICATION_PORT}
+      - HOST=0.0.0.0
+      - PORT=3002
       - SMTP_HOST=${SMTP_HOST}
       - SMTP_PORT=${SMTP_PORT}
       - SMTP_USER=${SMTP_USER}
