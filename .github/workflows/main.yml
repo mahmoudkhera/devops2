@@ -9,7 +9,45 @@ on:
         default: "latest"
 
 jobs:
+  vulnerability-scanning:
+    name: SonarCloud Scan
+    runs-on: ubuntu-latest
+    outputs:
+      frontend: ${{ steps.filter.outputs.frontend }}
+      inventory: ${{ steps.filter.outputs.inventory }}
+      notification: ${{ steps.filter.outputs.notification }}
+    strategy:
+      matrix:
+        
+        service: [frontend, inventory, notification-service]
+    steps:
+      - uses: actions/checkout@v4
+
+
+      - name: Scan ${{ matrix.service }}
+        uses: sonarsource/sonarqube-scan-action@master
+        with:
+          projectBaseDir: ${{ matrix.service }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        
+      - name: detect changes
+        uses: dorny/paths-filter@v3
+        id: filter
+        with:
+          filters: |
+            frontend:
+              - 'frontend/**'
+            inventory:
+              - 'inventory-service/**'
+            notification:
+              - 'notification-service/**'
+  
   build-frontend:
+    needs: vulnerability-scanning
+    if: ${{ needs.vulnerability-scanning.outputs.frontend == 'true' }}
+
     runs-on: ubuntu-latest
 
     steps:
@@ -35,6 +73,8 @@ jobs:
           cache-to: type=registry,ref=${{ secrets.DOCKER_USERNAME }}/devops2-frontend:buildcache,mode=max
 
   build-backend:
+    needs: vulnerability-scanning
+    if: ${{ needs.vulnerability-scanning.outputs.inventory == 'true' }}
     runs-on: ubuntu-latest
 
     steps:
@@ -59,6 +99,8 @@ jobs:
           cache-from: type=registry,ref=${{ secrets.DOCKER_USERNAME }}/devops2-backend:buildcache
           cache-to: type=registry,ref=${{ secrets.DOCKER_USERNAME }}/devops2-backend:buildcache,mode=max
   build-notifications:
+    needs: vulnerability-scanning
+    if: ${{ needs.vulnerability-scanning.outputs.notification == 'true' }}
     runs-on: ubuntu-latest
 
     steps:
