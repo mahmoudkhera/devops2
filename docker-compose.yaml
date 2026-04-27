@@ -23,7 +23,7 @@ services:
     ports:
       - "${FRONTEND_PORT}:${FRONTEND_PORT}"
     environment:
-      - PORT=${FRONTEND_PORT}
+      - FRONTEND_PORT=${FRONTEND_PORT}
       - FRONTEND_HOST=0.0.0.0
       - API=${API}
     depends_on:
