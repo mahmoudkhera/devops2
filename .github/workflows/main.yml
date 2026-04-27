@@ -37,9 +37,9 @@ jobs:
         
         - name: Scan ${{ matrix.service }}
           if: |
-            (matrix.service == 'frontend' && needs.detect-changes.outputs.frontend == 'true') ||
+            ((matrix.service == 'frontend' && needs.detect-changes.outputs.frontend == 'true') ||
             (matrix.service == 'inventory-service' && needs.detect-changes.outputs.inventory == 'true') ||
-            (matrix.service == 'notification-service' && needs.detect-changes.outputs.notification == 'true')
+            (matrix.service == 'notification-service' && needs.detect-changes.outputs.notification == 'true'))
           uses: sonarsource/sonarqube-scan-action@master
           with:
             projectBaseDir: ${{ matrix.service }}
@@ -169,9 +169,9 @@ jobs:
       name: Integration Test
       needs: [detect-changes,build-frontend, build-inventory, build-notifications]
       if: |
-            (needs.detect-changes.outputs.frontend == 'true') ||
-            (needs.detect-changes.outputs.inventory == 'true') ||
-            (needs.detect-changes.outputs.notification == 'true')
+            (needs.detect-changes.outputs.frontend == 'true' ||
+            needs.detect-changes.outputs.inventory == 'true' ||
+            needs.detect-changes.outputs.notification == 'true')
       runs-on: ubuntu-latest
       environment: 'dev-env'
       env:
