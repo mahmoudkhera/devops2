@@ -169,9 +169,11 @@ jobs:
       name: Integration Test
       needs: [detect-changes,build-frontend, build-inventory, build-notifications]
       if: |
-            (needs.detect-changes.outputs.frontend == 'true' ||
-            needs.detect-changes.outputs.inventory == 'true' ||
-            needs.detect-changes.outputs.notification == 'true')
+        always() &&
+        !failure() &&
+        (needs.build-frontend.result == 'success' ||
+        needs.build-inventory.result == 'success' ||
+        needs.build-notifications.result == 'success')
       runs-on: ubuntu-latest
       environment: 'dev-env'
       env:
@@ -234,7 +236,7 @@ jobs:
         - name: Pull images
           run: |
             docker pull ${{ secrets.DOCKER_USERNAME }}/devops2-frontend:${FRONTEND_VERSION}
-            docker pull ${{ secrets.DOCKER_USERNAME }}/devops2-backend:${BACKEND_VERSION}
+            docker pull ${{ secrets.DOCKER_USERNAME }}/devops2-inventory:${BACKEND_VERSION}
             docker pull ${{ secrets.DOCKER_USERNAME }}/devops2-notifications:${NOTIFICATION_VERSION}
       
         - name: Start services with docker compose
