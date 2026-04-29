@@ -1,6 +1,5 @@
-name: CI/CD Pipeline
+name:  Update GitOps repository
 on:
-  push:
   workflow_dispatch: 
 jobs:
   Update-GitOps-repository:
@@ -28,7 +27,7 @@ jobs:
           # Commit changes
           git config --global user.name "${{ vars.GIT_NAME }}"
           git config --global user.email "${{ vars.GIT_EMAIL }}"
-          git add deployment.yaml
+          git add dvalues-frontend.yaml
           git commit -m "Update image to ${{ github.sha }}"
           
           # Push
