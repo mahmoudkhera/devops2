@@ -1,0 +1,37 @@
+name: CI/CD Pipeline
+on:
+  push:
+  workflow_dispatch: 
+jobs:
+  Update-GitOps-repository:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Update GitOps repository
+        shell: bash
+        env:
+          GIT_TOKEN: ${{ secrets.GITOPS_PAT }}
+        run: |
+          # Configure git credential store
+          git config --global credential.helper store
+          echo "https://${GIT_TOKEN}:x-oauth-basic@github.com" > ~/.git-credentials
+          
+          # Remove any existing gitops directory
+          rm -rf gitops
+          
+          # Clone repository using HTTPS URL without token
+          git clone https://github.com/mahmoudkhera/grade-api-gitops.git gitops
+          cd gitops/helm_chart
+          echo "$pwd"
+          sed -i 's|image_tag: .*|image_tag: ${{ github.sha }}|' values-frontend.yaml 
+          
+          # Commit changes
+          git config --global user.name "${{ vars.GIT_NAME }}"
+          git config --global user.email "${{ vars.GIT_EMAIL }}"
+          git add deployment.yaml
+          git commit -m "Update image to ${{ github.sha }}"
+          
+          # Push
+          git push -f https://${GIT_TOKEN}@github.com/mahmoudkhera/grade-api-gitops.git main
+
+          
