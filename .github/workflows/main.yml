@@ -312,7 +312,7 @@ jobs:
           run: |
             docker pull ${{ secrets.DOCKER_USERNAME }}/devops2-frontend:${FRONTEND_VERSION}
             docker pull ${{ secrets.DOCKER_USERNAME }}/devops2-inventory:${BACKEND_VERSION}
-            docker pull ${{ secrets.DOCKER_USERNAME }}/devops2-notifications:${notifications_VERSION}
+            docker pull ${{ secrets.DOCKER_USERNAME }}/devops2-notifications:${NOTIFICATIONS_VERSION}
       
         - name: Start services with docker compose
           run: docker compose -f tests/docker-compose.yaml up -d

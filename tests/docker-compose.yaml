@@ -19,7 +19,7 @@ services:
       - ci-net
 
   notification:
-    image: ${DOCKER_USERNAME}/devops2-notifications:${NOTIFICATION_VERSION}
+    image: ${DOCKER_USERNAME}/devops2-notifications:${NOTIFICATIONS_VERSION}
     container_name: ci-notification
     environment:
       - HOST=0.0.0.0
