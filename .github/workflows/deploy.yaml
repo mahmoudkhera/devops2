@@ -28,9 +28,11 @@ jobs:
           rm -rf gitops
           git clone https://github.com/mahmoudkhera/grade-api-gitops.git gitops
           cd gitops/helm_chart
+          
 
       - name: update  GitOps repository
         run: |
+          pwd
           export FRONTEND_TAG=latest
           export INVENTORY_TAG=latest
           export NOTIFICATIONS_TAG=latest
@@ -43,7 +45,8 @@ jobs:
           
           echo " edit SHA: $NOTIFICATIONS_TAG"
           sed -i "s|image_tag: .*|image_tag: $NOTIFICATIONS_TAG|" values-notifactions.yaml
-      - name: commit and pusth to GitOps repository
+
+      - name: commit and push to GitOps repository
         run: |          
           git config --global user.name "mahmoud khera"
           git config --global user.email "mahmoudkhera20@gmail.com"
@@ -69,9 +72,11 @@ jobs:
           rm -rf gitops
           git clone https://github.com/mahmoudkhera/grade-api-gitops.git gitops
           cd gitops/helm_chart
+          
         
       - name: update files to the latest version
         run : |
+          pwd
           # Use current commit SHA as the tag
           export FRONTEND_TAG=$(curl -s "https://hub.docker.com/v2/repositories/mahmoudkhera/devops2-frontend/tags?page_size=1&ordering=last_updated"   | jq  '.results[0].name')
           export INVENTORY_TAG=$(curl -s "https://hub.docker.com/v2/repositories/mahmoudkhera/devops2-inventory/tags?page_size=1&ordering=last_updated"   | jq  '.results[0].name')
