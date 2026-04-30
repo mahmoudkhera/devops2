@@ -284,19 +284,19 @@ jobs:
             if [ "${{ needs.detect-changes.outputs.frontend }}" == "true" ]; then
                  FRONTEND_VERSION="${{ github.sha }}"
             else
-                 FRONTEND_VERSION=$(cat frontend-sha.txt 2>/dev/null || echo "latest")
+                 FRONTEND_VERSION=$(cat frontend-sha.txt 2>/dev/null || echo "last version")
             fi
 
             if [ "${{ needs.detect-changes.outputs.inventory }}" == "true" ]; then
               BACKEND_VERSION="${{ github.sha }}"
             else
-              BACKEND_VERSION=$(cat backend-sha.txt 2>/dev/null || echo "latest")
+              BACKEND_VERSION=$(cat backend-sha.txt 2>/dev/null || echo "last version")
             fi
 
             if [ "${{ needs.detect-changes.outputs.notifications }}" == "true" ]; then
                notifications_VERSION="${{ github.sha }}"
             else
-              notifications_VERSION=$(cat notifications-sha.txt 2>/dev/null || echo "latest")
+              notifications_VERSION=$(cat notifications-sha.txt 2>/dev/null || echo "last version")
             fi
 
             echo "FRONTEND_VERSION=$FRONTEND_VERSION"         >> $GITHUB_ENV

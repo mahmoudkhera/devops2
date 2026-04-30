@@ -9,7 +9,7 @@ on:
         type: choice
         options:
           - latest       
-          - commited   
+          - last_commit   
 
 jobs:
 
