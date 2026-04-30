@@ -31,6 +31,7 @@ jobs:
           
 
       - name: update  GitOps repository
+        working-directory: gitops/helm_chart
         run: |
           pwd
           export FRONTEND_TAG=latest
@@ -47,10 +48,16 @@ jobs:
           sed -i "s|image_tag: .*|image_tag: $NOTIFICATIONS_TAG|" values-notifactions.yaml
 
       - name: commit and push to GitOps repository
+        working-directory: gitops/helm_chart
         run: |          
           git config --global user.name "mahmoud khera"
           git config --global user.email "mahmoudkhera20@gmail.com"
           git add values-frontend.yaml values-inventory.yaml values-notifactions.yaml
+
+          if git diff --cached --quiet; then
+          echo "No changes to commit"
+          exit 0
+          fi
           git commit -m "Update image  $(git status |grep -oE "modified|workflows" | tr '\n' ' ')"
           git push -f https://${GIT_TOKEN}@github.com/mahmoudkhera/grade-api-gitops.git main
 
@@ -75,6 +82,7 @@ jobs:
           
         
       - name: update files to the latest version
+        working-directory: gitops/helm_chart
         run : |
           pwd
           # Use current commit SHA as the tag
@@ -92,14 +100,21 @@ jobs:
           sed -i "s|image_tag: .*|image_tag: $NOTIFICATIONS_TAG|" values-notifactions.yaml
 
       - name: show images that updated 
+        working-directory: gitops/helm_chart
         run:  echo -e "---image updated---\n$(git status | grep -oE "frontend|\inventory\|notifactions")"
     
       - name: commit and pusth to GitOps repository
+        working-directory: gitops/helm_chart
         run: | 
           git config --global user.name "mahmoud khera"
           git config --global user.email "mahmoudkhera20@gmail.com"
 
           git add values-frontend.yaml values-inventory.yaml values-notifactions.yaml
+
+          if git diff --cached --quiet; then
+          echo "No changes to commit"
+          exit 0
+          fi
 
           git commit -m "Update image  $(git status |grep -oE "modified|workflows" | tr '\n' ' ')"
           git push -f https://${GIT_TOKEN}@github.com/mahmoudkhera/grade-api-gitops.git main
