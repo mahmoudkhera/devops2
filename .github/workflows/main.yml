@@ -30,7 +30,6 @@ on:
     - 'frontend/**'
     - 'inventory-service/**'
     - 'notifications-service/**'
-    - '.github/workflows/main.yml'
   pull_request:
 
 
@@ -38,7 +37,7 @@ on:
 jobs:
   detect-changes:
     if: |
-      github.event_name != 'push' 
+      github.event_name == 'push' 
       
     runs-on: ubuntu-latest
     outputs:
